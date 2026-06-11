@@ -14,7 +14,37 @@ class TransactionSeeder extends Seeder
 
         if (!$user) return;
 
-        $transactions = [
+        $transactions = [];
+
+        $months = ['01', '02', '03', '04', '05'];
+        
+        foreach ($months as $month) {
+            // Income Tetap (Gaji)
+            $transactions[] = ['type' => 'income', 'category' => 'Salary', 'amount' => 5000000, 'description' => 'Gaji bulanan', 'transaction_date' => "2026-$month-01"];
+            
+            // Income Tambahan (Random Freelance)
+            if (rand(0, 1)) {
+                $transactions[] = ['type' => 'income', 'category' => 'Freelance', 'amount' => rand(10, 25) * 100000, 'description' => 'Project sampingan', 'transaction_date' => "2026-$month-" . str_pad(rand(5, 15), 2, '0', STR_PAD_LEFT)];
+            }
+
+            // Pengeluaran Tetap (Bills & Entertainment)
+            $transactions[] = ['type' => 'expense', 'category' => 'Bills', 'amount' => 200000, 'description' => 'Listrik & internet', 'transaction_date' => "2026-$month-05"];
+            $transactions[] = ['type' => 'expense', 'category' => 'Entertainment', 'amount' => 99000, 'description' => 'Netflix bulanan', 'transaction_date' => "2026-$month-08"];
+            
+            // Pengeluaran Variabel (Food, Transport) diakumulasi untuk simulasi
+            $transactions[] = ['type' => 'expense', 'category' => 'Food', 'amount' => rand(80, 150) * 10000, 'description' => 'Groceries & Makan', 'transaction_date' => "2026-$month-" . str_pad(rand(10, 20), 2, '0', STR_PAD_LEFT)];
+            $transactions[] = ['type' => 'expense', 'category' => 'Transport', 'amount' => rand(20, 40) * 10000, 'description' => 'Bensin & Transportasi', 'transaction_date' => "2026-$month-" . str_pad(rand(10, 20), 2, '0', STR_PAD_LEFT)];
+            
+            // Random Shopping/Health
+            if (rand(0, 1)) {
+                $transactions[] = ['type' => 'expense', 'category' => 'Shopping', 'amount' => rand(20, 50) * 10000, 'description' => 'Belanja kebutuhan', 'transaction_date' => "2026-$month-" . str_pad(rand(15, 25), 2, '0', STR_PAD_LEFT)];
+            } else {
+                $transactions[] = ['type' => 'expense', 'category' => 'Health', 'amount' => rand(5, 15) * 10000, 'description' => 'Apotek & Vitamin', 'transaction_date' => "2026-$month-" . str_pad(rand(15, 25), 2, '0', STR_PAD_LEFT)];
+            }
+        }
+
+        // 2. Tambahkan data spesifik Anda untuk bulan Juni 2026
+        $juneTransactions = [
             // Income
             ['type' => 'income', 'category' => 'Salary',      'amount' => 5000000, 'description' => 'Uang jajan bulan Juni',         'transaction_date' => '2026-06-01'],
             ['type' => 'income', 'category' => 'Freelance',   'amount' => 1500000, 'description' => 'Project desain logo',      'transaction_date' => '2026-06-05'],
@@ -33,7 +63,9 @@ class TransactionSeeder extends Seeder
             ['type' => 'expense', 'category' => 'Shopping',    'amount' => 180000, 'description' => 'Skincare',                 'transaction_date' => '2026-06-10'],
         ];
 
-        foreach ($transactions as $t) {
+        $allTransactions = array_merge($transactions, $juneTransactions);
+
+        foreach ($allTransactions as $t) {
             Transaction::create(array_merge($t, ['user_id' => $user->id]));
         }
     }

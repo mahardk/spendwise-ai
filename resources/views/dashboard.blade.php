@@ -25,6 +25,179 @@
     </div>
 </div>
 
+{{-- Charts --}}
+<div class="grid grid-cols-2 gap-4 mb-6">
+
+    {{-- Area: Income vs Expense per bulan --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+        <h3 class="font-semibold text-white mb-1">Income vs Expense</h3>
+        <p class="text-xs text-slate-500 mb-4">Monthly trend</p>
+        <div style="position:relative; width:100%; height:220px;">
+            <canvas id="areaChart" role="img" aria-label="Area chart showing monthly income vs expense trends"></canvas>
+        </div>
+    </div>
+
+    {{-- Doughnut: Expense by Category --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+        <h3 class="font-semibold text-white mb-1">Expense by Category</h3>
+        <p class="text-xs text-slate-500 mb-4">Breakdown</p>
+        <div id="donut-legend" class="flex flex-wrap gap-x-4 gap-y-1 mb-3"></div>
+        <div style="position:relative; width:100%; height:180px;">
+            <canvas id="donutChart" role="img" aria-label="Doughnut chart showing expense breakdown by category"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    const monthlyRaw  = @json($monthly);
+    const months      = Object.keys(monthlyRaw);
+    const incomeData  = months.map(m => {
+        const row = (monthlyRaw[m] || []).find(r => r.type === 'income');
+        return row ? parseFloat(row.total) : 0;
+    });
+    const expenseData = months.map(m => {
+        const row = (monthlyRaw[m] || []).find(r => r.type === 'expense');
+        return row ? parseFloat(row.total) : 0;
+    });
+
+    const pieLabels = @json($expenseByCategory->pluck('category'));
+    const pieData   = @json($expenseByCategory->pluck('total')->map(fn($v) => (float)$v));
+
+    function makeGradient(ctx, colorTop, colorBottom) {
+        const g = ctx.createLinearGradient(0, 0, 0, 220);
+        g.addColorStop(0, colorTop);
+        g.addColorStop(1, colorBottom);
+        return g;
+    }
+
+    // ── Area Chart ──────────────────────────────────────────────
+    const aCtx = document.getElementById('areaChart').getContext('2d');
+    const incomeGrad  = makeGradient(aCtx, 'rgba(16,185,129,0.35)', 'rgba(16,185,129,0)');
+    const expenseGrad = makeGradient(aCtx, 'rgba(244,63,94,0.35)',  'rgba(244,63,94,0)');
+
+    new Chart(aCtx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: incomeData,
+                    borderColor: '#10b981',
+                    borderWidth: 2.5,
+                    backgroundColor: incomeGrad,
+                    fill: true,
+                    tension: 0.45,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#0f172a',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Expense',
+                    data: expenseData,
+                    borderColor: '#f43f5e',
+                    borderWidth: 2.5,
+                    backgroundColor: expenseGrad,
+                    fill: true,
+                    tension: 0.45,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#f43f5e',
+                    pointBorderColor: '#0f172a',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    borderDash: [0],
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleColor: '#94a3b8',
+                    bodyColor: '#f1f5f9',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    padding: 10,
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: Rp ${ctx.parsed.y.toLocaleString('id-ID')}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#64748b', font: { size: 11 }, autoSkip: false, maxRotation: 0 },
+                    grid: { color: 'rgba(51,65,85,0.5)' },
+                    border: { display: false }
+                },
+                y: {
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 11 },
+                        callback: v => 'Rp ' + (v >= 1000000 ? (v/1000000).toFixed(1)+'jt' : (v/1000)+'rb')
+                    },
+                    grid: { color: 'rgba(51,65,85,0.5)' },
+                    border: { display: false }
+                }
+            }
+        }
+    });
+
+    // ── Doughnut Chart ──────────────────────────────────────────
+    const palette = ['#8b5cf6','#06b6d4','#f43f5e','#10b981','#f59e0b','#3b82f6','#ec4899','#84cc16'];
+
+    const legendEl = document.getElementById('donut-legend');
+    pieLabels.forEach((lbl, i) => {
+        const pct = Math.round(pieData[i] / pieData.reduce((a,b) => a+b, 0) * 100);
+        legendEl.innerHTML += `
+            <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#94a3b8;">
+                <span style="width:8px;height:8px;border-radius:2px;background:${palette[i % palette.length]};flex-shrink:0;"></span>
+                ${lbl} ${pct}%
+            </span>`;
+    });
+
+    new Chart(document.getElementById('donutChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieData,
+                backgroundColor: palette,
+                borderWidth: 3,
+                borderColor: '#0f172a',
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleColor: '#94a3b8',
+                    bodyColor: '#f1f5f9',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    padding: 10,
+                    callbacks: {
+                        label: ctx => ` Rp ${ctx.parsed.toLocaleString('id-ID')}`
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>
+
 <div class="grid grid-cols-3 gap-4">
 
     {{-- Recent Transactions --}}
