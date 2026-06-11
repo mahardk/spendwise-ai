@@ -42,7 +42,7 @@ Berikan analisis dalam format berikut (gunakan bahasa Indonesia):
 Gunakan emoji yang relevan. Jawab dengan ringkas dan actionable.
 PROMPT;
 
-        $result = Gemini::geminiFlash()->generateContent($prompt);
+        $result = $result = Gemini::generativeModel(model: 'gemini-2.5-flash')->generateContent($prompt);
         $text   = $result->text();
 
         return response()->json(['result' => $text]);
@@ -83,7 +83,7 @@ Gunakan bahasa Indonesia dan emoji. Jawab ringkas.
 PROMPT;
 
         return response()->stream(function () use ($prompt) {
-            $stream = Gemini::geminiFlash()->streamGenerateContent($prompt);
+            $stream = Gemini::generativeModel(model: 'gemini-2.5-flash')->streamGenerateContent($prompt);
 
             foreach ($stream as $response) {
                 $text = $response->text();
