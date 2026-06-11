@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\AIController;
+use App\Http\Controllers\GoalController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,4 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('transactions', TransactionController::class)->except(['show']);
     Route::get('/ai/analyze', [AIController::class, 'stream'])->name('ai.analyze');
+
+    Route::resource('goals', GoalController::class)->only(['index', 'store', 'destroy']);
+    Route::post('goals/{goal}/saving', [GoalController::class, 'addSaving'])->name('goals.saving');
 });

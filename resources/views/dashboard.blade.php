@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- Summary Cards --}}
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
         <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Balance</p>
         <p class="text-2xl font-bold {{ $balance >= 0 ? 'text-cyan-400' : 'text-red-400' }}">
@@ -26,7 +26,7 @@
 </div>
 
 {{-- Charts --}}
-<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
     {{-- Area: Income vs Expense per bulan --}}
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
@@ -72,7 +72,7 @@
         return g;
     }
 
-    // ── Area Chart ──────────────────────────────────────────────
+    // ── Area Chart
     const aCtx = document.getElementById('areaChart').getContext('2d');
     const incomeGrad  = makeGradient(aCtx, 'rgba(16,185,129,0.35)', 'rgba(16,185,129,0)');
     const expenseGrad = makeGradient(aCtx, 'rgba(244,63,94,0.35)',  'rgba(244,63,94,0)');
@@ -150,7 +150,7 @@
         }
     });
 
-    // ── Doughnut Chart ──────────────────────────────────────────
+    // ── Doughnut Chart 
     const palette = ['#8b5cf6','#06b6d4','#f43f5e','#10b981','#f59e0b','#3b82f6','#ec4899','#84cc16'];
 
     const legendEl = document.getElementById('donut-legend');
@@ -201,7 +201,7 @@
 <div class="grid grid-cols-3 gap-4">
 
     {{-- Recent Transactions --}}
-    <div class="col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+    <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-white">Recent Transactions</h3>
             <a href="{{ route('transactions.index') }}" class="text-xs text-violet-400 hover:underline">View all</a>
